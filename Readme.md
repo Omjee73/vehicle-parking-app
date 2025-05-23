@@ -105,8 +105,6 @@ A sophisticated web-based platform designed to revolutionize the way parking spa
 - **Email**: admin@parking.com
 - **Password**: admin123
 
-> **Note**: For security reasons, please change the default admin password after your first login.
-
 ## 👥 User Roles and Access
 
 ### Admin Access
@@ -125,11 +123,6 @@ A sophisticated web-based platform designed to revolutionize the way parking spa
 - Secure password hashing using Werkzeug.
 - Session management and protection.
 - Role-based access control.
-
-### Data Protection
-- CSRF protection for forms.
-- Input validation and sanitization.
-- Secure session handling.
 
 ## 📱 Key Workflows
 
