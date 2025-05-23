@@ -27,12 +27,37 @@ A sophisticated web-based platform designed to revolutionize the way parking spa
 - **Flask-Login**: Handles user authentication and session management securely.
 - **Flask-WTF**: Provides form handling and validation capabilities.
 - **Flask-Session**: Manages user sessions and maintains state across requests.
+- **Werkzeug**: Used for password hashing and security utilities.
+- **PDFKit**: For generating PDF receipts and reports.
 
 ### Frontend Technologies
 - **Jinja2 Templates**: A powerful templating engine for Python that generates dynamic HTML content.
-- **CSS**: Custom styling for a modern and responsive user interface.
-- **JavaScript**: Client-side interactivity and dynamic content updates.
-- **Bootstrap**: Framework for responsive design and UI components.
+- **Bootstrap 5.3.0**: Framework for responsive design and UI components.
+- **Chart.js**: For data visualization and analytics charts.
+- **Font Awesome 6.0.0**: For icons and visual elements.
+- **JavaScript**: Client-side interactivity and dynamic content updates:
+  - Form validation
+  - Dynamic UI updates
+  - Chart rendering
+  - Bootstrap component interactions
+
+### Development Tools
+- **Python 3.7+**: Core programming language
+- **pip**: Package manager for Python dependencies
+- **Git**: Version control system
+- **SQLite**: Database system
+- **Virtual Environment**: For dependency isolation
+
+### Key Libraries and Dependencies
+- **Flask-Login**: User authentication
+- **Flask-SQLAlchemy**: Database ORM
+- **Flask-WTF**: Form handling
+- **Flask-Session**: Session management
+- **Werkzeug**: Security utilities
+- **PDFKit**: PDF generation
+- **Chart.js**: Data visualization
+- **Bootstrap**: UI framework
+- **Font Awesome**: Icon library
 
 ## 📁 Project Structure
 
