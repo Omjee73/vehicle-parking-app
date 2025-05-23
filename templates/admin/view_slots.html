@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block title %}View Slots - {{ lot.name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <!-- Main Content -->
+        <div class="col-12 content">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="fas fa-parking"></i> {{ lot.name }} - Parking Slots</h2>
+                <a href="{{ url_for('admin.lots') }}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to Lots
+                </a>
+            </div>
+
+            <!-- Date Filter Only -->
+            <form method="get" class="row g-3 mb-4 align-items-end">
+                <div class="col-md-3">
+                    <label for="date" class="form-label">Date</label>
+                    <input type="date" class="form-control" id="date" name="date" value="{{ selected_date }}">
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100">SELECT</button>
+                </div>
+            </form>
+
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-calendar-day"></i> Parking - {{ selected_date }}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex flex-wrap gap-3 justify-content-start">
+                        {% for item in slot_statuses %}
+                        {% set slot = item.slot %}
+                        {% set reservations = item.reservations %}
+                        <div class="p-3 rounded text-white text-center" style="min-width: 180px; margin-bottom: 10px; background-color: {% if reservations and reservations|length > 0 %}#dc3545{% else %}#198754{% endif %};">
+                            <div><strong>{{ slot.start_time.strftime('%H:%M') }} - {{ slot.end_time.strftime('%H:%M') }}</strong></div>
+                            {% if reservations and reservations|length > 0 %}
+                                {% for reservation in reservations %}
+                                    <div style="font-size: 0.95em;">Booked by: {{ reservation.user.name }}</div>
+                                {% endfor %}
+                            {% else %}
+                                <div style="font-size: 0.95em;">Available</div>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

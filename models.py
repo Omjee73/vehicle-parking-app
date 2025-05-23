@@ -1,6 +1,6 @@
 from datetime import datetime
 from flask_login import UserMixin
-from app import db
+from extensions import db
 from werkzeug.security import generate_password_hash, check_password_hash
 
 # Base User model for authentication
@@ -10,7 +10,7 @@ class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(256), nullable=False)
-    user_type = db.Column(db.String(10), nullable=False)  # 'admin' or 'patient'
+    user_type = db.Column(db.String(10), nullable=False)  # 'admin' or 'user'
     
     __mapper_args__ = {
         'polymorphic_identity': 'user',
@@ -29,87 +29,91 @@ class Admin(User):
     
     id = db.Column(db.Integer, db.ForeignKey('users.id'), primary_key=True)
     name = db.Column(db.String(100), nullable=False)
+    total_revenue = db.Column(db.Float, default=0.0)
     
     __mapper_args__ = {
         'polymorphic_identity': 'admin',
     }
 
-# Patient model
-class Patient(User):
-    __tablename__ = 'patients'
+# Regular User model
+class RegularUser(User):
+    __tablename__ = 'regular_users'
     
     id = db.Column(db.Integer, db.ForeignKey('users.id'), primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     phone = db.Column(db.String(20), nullable=False)
     address = db.Column(db.String(200), nullable=False)
-    gender = db.Column(db.String(10), nullable=False)
-    age = db.Column(db.Integer, nullable=False)
     is_blocked = db.Column(db.Boolean, default=False)
-    
-    # Relationships
-    appointments = db.relationship('Appointment', backref='patient', lazy=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     __mapper_args__ = {
-        'polymorphic_identity': 'patient',
+        'polymorphic_identity': 'regular_user',
     }
 
-# Doctor model
-class Doctor(db.Model):
-    __tablename__ = 'doctors'
+# Parking Lot model
+class ParkingLot(db.Model):
+    __tablename__ = 'parking_lots'
     
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
-    specialization = db.Column(db.String(100), nullable=False)
-    fees = db.Column(db.Float, nullable=False)
+    prime_location_name = db.Column(db.String(200), nullable=False)
     address = db.Column(db.String(200), nullable=False)
-    start_time = db.Column(db.String(5), nullable=False)  # Format: HH:MM
-    end_time = db.Column(db.String(5), nullable=False)    # Format: HH:MM
-    slot_duration = db.Column(db.Integer, nullable=False)  # in minutes
-    available_days = db.Column(db.String(100), nullable=False)  # comma-separated days
+    pin_code = db.Column(db.String(10), nullable=False)
+    price_per_hour = db.Column(db.Float, nullable=False)
+    maximum_spots = db.Column(db.Integer, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     # Relationships
-    time_slots = db.relationship('TimeSlot', backref='doctor', lazy=True, cascade="all, delete-orphan")
-    appointments = db.relationship('Appointment', backref='doctor', lazy=True)
-    
-    @property
-    def available_days_list(self):
-        return self.available_days.split(',')
+    spots = db.relationship('ParkingSpot', backref='lot', lazy=True, cascade="all, delete-orphan")
 
-# TimeSlot model
+# Parking Spot model
+class ParkingSpot(db.Model):
+    __tablename__ = 'parking_spots'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    lot_id = db.Column(db.Integer, db.ForeignKey('parking_lots.id'), nullable=False)
+    spot_number = db.Column(db.String(10), nullable=False)
+    status = db.Column(db.String(1), default='A')  # A: Available, O: Occupied
+
+    def __repr__(self):
+        return f'<ParkingSpot {self.spot_number}>'
+
+# Time Slot model
 class TimeSlot(db.Model):
     __tablename__ = 'time_slots'
     
     id = db.Column(db.Integer, primary_key=True)
-    doctor_id = db.Column(db.Integer, db.ForeignKey('doctors.id'), nullable=False)
-    date = db.Column(db.Date, nullable=False)
-    start_time = db.Column(db.String(5), nullable=False)  # Format: HH:MM
-    is_booked = db.Column(db.Boolean, default=False)
-    
-    # Add unique constraint to ensure no duplicate slots
-    __table_args__ = (
-        db.UniqueConstraint('doctor_id', 'date', 'start_time', name='unique_time_slot'),
-    )
+    lot_id = db.Column(db.Integer, db.ForeignKey('parking_lots.id'), nullable=False)
+    start_time = db.Column(db.Time, nullable=False)
+    end_time = db.Column(db.Time, nullable=False)
+    price = db.Column(db.Float, nullable=False)  # Price for 30 minutes
 
-# Appointment model
-class Appointment(db.Model):
-    __tablename__ = 'appointments'
+    def __repr__(self):
+        return f'<TimeSlot {self.start_time}-{self.end_time}>'
+
+# Reservation model
+class Reservation(db.Model):
+    __tablename__ = 'reservations'
     
     id = db.Column(db.Integer, primary_key=True)
-    patient_id = db.Column(db.Integer, db.ForeignKey('patients.id'), nullable=False)
-    doctor_id = db.Column(db.Integer, db.ForeignKey('doctors.id'), nullable=False)
-    slot_id = db.Column(db.Integer, db.ForeignKey('time_slots.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('regular_users.id'), nullable=False)
+    spot_id = db.Column(db.Integer, db.ForeignKey('parking_spots.id'), nullable=False)
+    time_slot_id = db.Column(db.Integer, db.ForeignKey('time_slots.id'), nullable=False)
     date = db.Column(db.Date, nullable=False)
-    time = db.Column(db.String(5), nullable=False)  # Format: HH:MM
-    status = db.Column(db.String(20), default='pending')  # 'pending', 'approved', 'rejected', 'completed'
+    status = db.Column(db.String(20), default='active')  # active, completed, cancelled
+    total_cost = db.Column(db.Float)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    
-    # Relationship with TimeSlot
-    time_slot = db.relationship('TimeSlot', backref='appointment', uselist=False)
-    
-    @property
-    def is_completed(self):
-        # Appointment is completed if it's approved and the date has passed
-        if self.status == 'approved' and self.date < datetime.utcnow().date():
-            return True
-        return False
+    leaving_timestamp = db.Column(db.DateTime)
+    car_name = db.Column(db.String(100))
+    car_number = db.Column(db.String(20))
+
+    # Relationships
+    user = db.relationship('RegularUser', backref=db.backref('reservations', lazy=True))
+    spot = db.relationship('ParkingSpot', backref=db.backref('reservations', lazy=True))
+    time_slot = db.relationship('TimeSlot', backref=db.backref('reservations', lazy=True))
+
+    def calculate_cost(self):
+        if not self.leaving_timestamp:
+            return self.time_slot.price
+        duration = (self.leaving_timestamp - self.created_at).total_seconds() / 3600  # hours
+        return duration * self.spot.lot.price_per_hour

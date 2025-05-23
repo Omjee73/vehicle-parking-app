@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parking Receipt</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+        .receipt {
+            max-width: 800px;
+            margin: 0 auto;
+            border: 1px solid #ddd;
+            padding: 20px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #333;
+            padding-bottom: 10px;
+        }
+        .details {
+            margin-bottom: 20px;
+        }
+        .details p {
+            margin: 5px 0;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            border-top: 1px solid #ddd;
+            padding-top: 10px;
+        }
+        .download-btn {
+            display: block;
+            width: 200px;
+            margin: 20px auto;
+            padding: 10px;
+            background-color: #007bff;
+            color: white;
+            text-align: center;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+        .download-btn:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="receipt">
+        <div class="header">
+            <h1>Parking Receipt</h1>
+            <p>Receipt #{{ reservation.id }}</p>
+        </div>
+        
+        <div class="details">
+            <h3>User Information</h3>
+            <p><strong>Name:</strong> {{ reservation.user.name }}</p>
+            <p><strong>Email:</strong> {{ reservation.user.email }}</p>
+            <p><strong>Phone:</strong> {{ reservation.user.phone }}</p>
+            
+            <h3>Parking Details</h3>
+            <p><strong>Parking Lot:</strong> {{ reservation.spot.lot.name }}</p>
+            <p><strong>Spot Number:</strong> {{ reservation.spot.spot_number }}</p>
+            <p><strong>Car Name:</strong> {{ reservation.car_name }}</p>
+            <p><strong>Car Number:</strong> {{ reservation.car_number }}</p>
+            <p><strong>Date:</strong> {{ reservation.date.strftime('%Y-%m-%d') }}</p>
+            <p><strong>Time Slot:</strong> {{ reservation.time_slot.start_time.strftime('%H:%M') }} - {{ reservation.time_slot.end_time.strftime('%H:%M') }}</p>
+            
+            <h3>Payment Information</h3>
+            <p><strong>Status:</strong> 
+                {% if reservation.status == 'active' %}
+                    Active
+                {% elif reservation.status == 'completed' %}
+                    Completed
+                {% else %}
+                    Released
+                {% endif %}
+            </p>
+            <p><strong>Total Cost:</strong> ₹{{ '%.2f'|format(reservation.total_cost) if reservation.total_cost else 'Pending' }}</p>
+            {% if reservation.release_time %}
+            <p><strong>Released At:</strong> {{ reservation.release_time.strftime('%Y-%m-%d %H:%M') }}</p>
+            {% endif %}
+        </div>
+        
+        <div class="footer">
+            <p>Thank you for using our parking service!</p>
+            <p>For any queries, please contact our support team.</p>
+        </div>
+    </div>
+    
+    {% if not request.endpoint == 'admin.download_receipt' %}
+    <a href="{{ url_for('admin.download_receipt', reservation_id=reservation.id) }}" class="download-btn">
+        Download PDF
+    </a>
+    {% endif %}
+</body>
+</html> 

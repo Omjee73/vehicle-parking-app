@@ -3,30 +3,87 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Medical Appointment Booking{% endblock %}</title>
+    <title>{% block title %}Parking App{% endblock %}</title>
     
     <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
-    
-    <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
-    
-    {% block head %}{% endblock %}
+    <style>
+        :root {
+            --primary-color: #28a745;
+            --primary-hover: #218838;
+            --secondary-color: #6c757d;
+            --success-color: #28a745;
+            --info-color: #17a2b8;
+            --warning-color: #ffc107;
+            --danger-color: #dc3545;
+            --light-color: #f8f9fa;
+            --dark-color: #343a40;
+        }
+
+        .bg-primary {
+            background-color: var(--primary-color) !important;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-hover);
+            border-color: var(--primary-hover);
+        }
+
+        .text-primary {
+            color: var(--primary-color) !important;
+        }
+
+        .border-primary {
+            border-color: var(--primary-color) !important;
+        }
+
+        .navbar-brand {
+            font-weight: bold;
+        }
+        .sidebar {
+            min-height: calc(100vh - 56px);
+            background-color: #f8f9fa;
+            padding: 20px;
+        }
+        .content {
+            padding: 20px;
+        }
+        .card {
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .stats-card {
+            text-align: center;
+            padding: 20px;
+        }
+        .stats-card i {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+        .stats-card .number {
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+        .stats-card .label {
+            color: #6c757d;
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark">
-        <div class="container">
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container-fluid">
             <a class="navbar-brand" href="{{ url_for('index') }}">
-                <i class="fas fa-hospital-user"></i> Medical Booking
+                <i class="fas fa-parking"></i> Parking App
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
@@ -36,71 +93,65 @@
                     {% if current_user.is_authenticated %}
                         {% if current_user.user_type == 'admin' %}
                             <li class="nav-item">
-                                <a class="nav-link" href="{{ url_for('admin.dashboard') }}">
-                                    <i class="fas fa-home"></i> Home
+                                <a class="nav-link {% if request.endpoint == 'admin.dashboard' %}active{% endif %}" href="{{ url_for('admin.dashboard') }}">
+                                    <i class="fas fa-tachometer-alt"></i> Dashboard
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" href="{{ url_for('admin.patients') }}">
-                                    <i class="fas fa-users"></i> Patients
+                                <a class="nav-link {% if request.endpoint == 'admin.lots' %}active{% endif %}" href="{{ url_for('admin.lots') }}">
+                                    <i class="fas fa-parking"></i> Parking Lots
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" href="{{ url_for('admin.doctors') }}">
-                                    <i class="fas fa-user-md"></i> Doctors
+                                <a class="nav-link {% if request.endpoint == 'admin.users' %}active{% endif %}" href="{{ url_for('admin.users') }}">
+                                    <i class="fas fa-users"></i> Users
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" href="{{ url_for('admin.summary') }}">
+                                <a class="nav-link {% if request.endpoint == 'admin.summary' %}active{% endif %}" href="{{ url_for('admin.summary') }}">
                                     <i class="fas fa-chart-bar"></i> Summary
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {% if request.endpoint == 'admin.profile' %}active{% endif %}" href="{{ url_for('admin.profile') }}">
+                                    <i class="fas fa-user-cog"></i> Profile
                                 </a>
                             </li>
                         {% else %}
                             <li class="nav-item">
-                                <a class="nav-link" href="{{ url_for('user.dashboard') }}">
-                                    <i class="fas fa-home"></i> Home
+                                <a class="nav-link {% if request.endpoint == 'user.dashboard' %}active{% endif %}" href="{{ url_for('user.dashboard') }}">
+                                    <i class="fas fa-tachometer-alt"></i> Dashboard
+                                </a>
+                            </li>
+                            <!-- <li class="nav-item">
+                                <a class="nav-link {% if request.endpoint == 'user.book_spot' %}active{% endif %}" href="{{ url_for('user.book_spot') }}">
+                                    <i class="fas fa-calendar-plus"></i> Book
+                                </a> -->
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {% if request.endpoint == 'user.history' %}active{% endif %}" href="{{ url_for('user.history') }}">
+                                    <i class="fas fa-history"></i> History
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" href="{{ url_for('user.appointments') }}">
-                                    <i class="fas fa-calendar-check"></i> Appointments
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="{{ url_for('user.summary') }}">
+                                <a class="nav-link {% if request.endpoint == 'user.summary' %}active{% endif %}" href="{{ url_for('user.summary') }}">
                                     <i class="fas fa-chart-bar"></i> Summary
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {% if request.endpoint == 'user.profile' %}active{% endif %}" href="{{ url_for('user.profile') }}">
+                                    <i class="fas fa-user"></i> Profile
                                 </a>
                             </li>
                         {% endif %}
                     {% endif %}
                 </ul>
-                
                 <ul class="navbar-nav">
                     {% if current_user.is_authenticated %}
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
-                                <i class="fas fa-user-circle"></i> 
-                                {% if current_user.user_type == 'admin' %}
-                                    Admin: {{ current_user.name }}
-                                {% else %}
-                                    {{ current_user.name }}
-                                {% endif %}
-                            </a>
-                            <ul class="dropdown-menu dropdown-menu-end">
-                                {% if current_user.user_type == 'admin' %}
-                                    <li><a class="dropdown-item" href="{{ url_for('admin.edit_profile') }}">
-                                        <i class="fas fa-user-edit"></i> Edit Profile
-                                    </a></li>
-                                {% else %}
-                                    <li><a class="dropdown-item" href="{{ url_for('user.edit_profile') }}">
-                                        <i class="fas fa-user-edit"></i> Edit Profile
-                                    </a></li>
-                                {% endif %}
-                                <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}">
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('auth.logout') }}">
                                     <i class="fas fa-sign-out-alt"></i> Logout
-                                </a></li>
-                            </ul>
+                            </a>
                         </li>
                     {% else %}
                         <li class="nav-item">
@@ -119,7 +170,8 @@
         </div>
     </nav>
     
-    <div class="container mt-4">
+    <!-- Flash Messages -->
+    <div class="container mt-3">
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 {% for category, message in messages %}
@@ -130,21 +182,19 @@
                 {% endfor %}
             {% endif %}
         {% endwith %}
-        
-        {% block content %}{% endblock %}
     </div>
     
-    <footer class="footer mt-5 py-3">
-        <div class="container text-center">
-            <span class="text-muted">
-                &copy; {{ now.year }} Medical Appointment Booking. All rights reserved.
-            </span>
+    <!-- Main Content -->
+    <div class="container-fluid">
+        <div class="row">
+            {% block content %}{% endblock %}
         </div>
-    </footer>
+    </div>
     
-    <!-- Bootstrap JS Bundle with Popper -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-    
-    {% block scripts %}{% endblock %}
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    {% block extra_js %}{% endblock %}
 </body>
 </html>

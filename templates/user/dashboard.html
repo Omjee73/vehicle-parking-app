@@ -1,84 +1,115 @@
 {% extends "base.html" %}
 
-{% block title %}User Dashboard - Medical Appointment Booking{% endblock %}
+{% block title %}User Dashboard - Parking App{% endblock %}
 
 {% block content %}
-<div class="row mb-4">
-    <div class="col-md-12">
-        <h2 class="mb-4"><i class="fas fa-home"></i> Home</h2>
-        
-        <!-- Specialization Filter -->
-        <div class="card mb-4">
-            <div class="card-header">
-                <h5 class="mb-0"><i class="fas fa-filter"></i> Filter Doctors</h5>
+<div class="container-fluid">
+    <div class="row">
+        <!-- Main Content -->
+        <div class="col-12 content">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="fas fa-home"></i> Welcome, {{ current_user.name }}!</h2>
             </div>
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-md-8">
-                        <div class="btn-group flex-wrap">
-                            <a href="{{ url_for('user.dashboard') }}" class="btn btn-outline-primary {% if not selected_specialty %}active{% endif %}">
-                                All Specialties
-                            </a>
-                            {% for specialty in specialties %}
-                            <a href="{{ url_for('user.dashboard', specialty=specialty) }}" 
-                               class="btn btn-outline-primary {% if selected_specialty == specialty %}active{% endif %}">
-                                {{ specialty }}
-                            </a>
-                            {% endfor %}
+
+            {% if active_reservation %}
+            <!-- Active Reservation -->
+            <div class="card mb-4">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="fas fa-car"></i> Active Reservation</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Parking Lot:</strong> {{ active_reservation.spot.lot.name }}</p>
+                            <p><strong>Spot Number:</strong> {{ active_reservation.spot.spot_number }}</p>
+                            <p><strong>Time Slot:</strong> 
+                              {% if active_reservation.time_slot %}
+                                {{ active_reservation.time_slot.start_time.strftime('%H:%M') }} - {{ active_reservation.time_slot.end_time.strftime('%H:%M') }}
+                              {% else %}
+                                N/A
+                              {% endif %}
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Started at:</strong> {{ active_reservation.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
+                            <p><strong>Status:</strong> <span class="badge bg-success">Active</span></p>
+                            <p><strong>Cost:</strong> ₹{{ "%.2f"|format(active_reservation.total_cost) }}</p>
                         </div>
                     </div>
-                    <div class="col-md-4 text-end">
-                        <strong>Showing:</strong> 
-                        {% if selected_specialty %}
-                            {{ selected_specialty }} Specialists
+                    <div class="text-end">
+                        <form action="{{ url_for('user.release_spot', reservation_id=active_reservation.id) }}" method="POST" class="d-inline">
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-sign-out-alt"></i> Release Spot
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Available Parking Lots -->
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="fas fa-parking"></i> Available Parking Lots</h5>
+                </div>
+                <div class="card-body">
+                    <!-- Location Filter -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <form method="GET" action="{{ url_for('user.dashboard') }}" class="d-flex align-items-center">
+                                <div class="input-group">
+                                    <label class="input-group-text" for="location_filter">
+                                        <i class="fas fa-map-marker-alt"></i> Filter by Location
+                                    </label>
+                                    <select class="form-select" id="location_filter" name="location" onchange="this.form.submit()">
+                                        <option value="">All Locations</option>
+                                        {% for location in locations %}
+                                        <option value="{{ location }}" {% if selected_location == location %}selected{% endif %}>
+                                            {{ location }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        {% if lots %}
+                            {% for lot in lots %}
+                            <div class="col-md-6 col-lg-4 mb-4">
+                                <div class="card h-100">
+                                    <div class="card-body">
+                                        <h5 class="card-title">{{ lot.name }}</h5>
+                                        <p class="card-text">
+                                            <strong>Location:</strong> {{ lot.prime_location_name }}<br>
+                                            <strong>Address:</strong> {{ lot.address }}<br>
+                                            <strong>Price/Hour:</strong> ₹{{ lot.price_per_hour }}
+                                        </p>
+                                        {% set available_spots = lot.spots|selectattr('status', 'equalto', 'A')|list|length %}
+                                        <div class="progress mb-3">
+                                            <div class="progress-bar bg-success" role="progressbar" 
+                                                 style="width: {{ (available_spots / lot.maximum_spots * 100)|round }}%">
+                                                {{ available_spots }} Available
+                                            </div>
+                                        </div>
+                                        <a href="{{ url_for('user.book_spot', lot_id=lot.id) }}" class="btn btn-success">
+                                            <i class="fas fa-calendar-plus"></i> Book Now
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
                         {% else %}
-                            All Doctors
+                            <div class="col-12">
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle"></i> No parking lots available in the selected location.
+                                </div>
+                            </div>
                         {% endif %}
                     </div>
                 </div>
             </div>
-        </div>
-        
-        <!-- Doctors List -->
-        <div class="row">
-            {% for doctor in doctors %}
-            <div class="col-md-4 mb-4">
-                <div class="card doctor-card h-100">
-                    <div class="card-header bg-primary text-white">
-                        <h5 class="mb-0">Dr. {{ doctor.name }}</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="mb-3 text-center">
-                            <div class="display-3 text-muted">
-                                <i class="fas fa-user-md"></i>
-                            </div>
-                        </div>
-                        <div class="doctor-info">
-                            <p><strong><i class="fas fa-stethoscope"></i> Specialist:</strong> {{ doctor.specialization }}</p>
-                            <p><strong><i class="fas fa-dollar-sign"></i> Fees:</strong> ${{ doctor.fees }}</p>
-                            <p><strong><i class="fas fa-clock"></i> Slot Time:</strong> {{ doctor.slot_duration }} min</p>
-                            <p><strong><i class="fas fa-calendar"></i> Available:</strong> {{ doctor.start_time }} to {{ doctor.end_time }}</p>
-                            <p><strong><i class="fas fa-calendar-week"></i> Days:</strong> {{ doctor.available_days }}</p>
-                        </div>
-                        <div class="text-center mt-3">
-                            <a href="{{ url_for('user.book_appointment', doctor_id=doctor.id) }}" class="btn btn-success">
-                                <i class="fas fa-calendar-plus"></i> Book Appointment
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            {% else %}
-            <div class="col-12">
-                <div class="alert alert-info">
-                    {% if selected_specialty %}
-                        <i class="fas fa-info-circle"></i> No doctors found for {{ selected_specialty }} specialty.
-                    {% else %}
-                        <i class="fas fa-info-circle"></i> No doctors available at the moment.
-                    {% endif %}
-                </div>
-            </div>
-            {% endfor %}
         </div>
     </div>
 </div>

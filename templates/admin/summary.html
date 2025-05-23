@@ -1,96 +1,116 @@
 {% extends "base.html" %}
 
-{% block title %}Admin Summary - Medical Appointment Booking{% endblock %}
+{% block title %}Summary - Admin{% endblock %}
 
 {% block content %}
-<div class="row mb-4">
-    <div class="col-md-12">
-        <h2 class="mb-4"><i class="fas fa-chart-bar"></i> Analytics Dashboard</h2>
-        
-        <!-- Statistics Cards -->
-        <div class="row mb-4">
-            <div class="col-md-3 mb-3">
-                <div class="card text-white bg-primary">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <h6 class="card-title">Total Doctors</h6>
-                                <h3 class="mb-0">{{ total_doctors }}</h3>
-                            </div>
-                            <i class="fas fa-user-md fa-3x opacity-50"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
+<div class="container-fluid">
+    <div class="row">
+        <!-- Main Content -->
+        <div class="col-12 content"></div>
+            <h2 class="mb-4"><i class="fas fa-chart-bar"></i> Summary</h2>
             
-            <div class="col-md-3 mb-3">
-                <div class="card text-white bg-success">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <h6 class="card-title">Total Patients</h6>
-                                <h3 class="mb-0">{{ total_patients }}</h3>
-                            </div>
-                            <i class="fas fa-users fa-3x opacity-50"></i>
+            <!-- Stats Cards -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card bg-primary text-white">
+                        <div class="card-body">
+                            <h5 class="card-title"><i class="fas fa-users"></i> Total Users</h5>
+                            <h2 class="card-text">{{ total_users }}</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-success text-white">
+                        <div class="card-body">
+                            <h5 class="card-title"><i class="fas fa-parking"></i> Total Lots</h5>
+                            <h2 class="card-text">{{ total_lots }}</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-info text-white">
+                        <div class="card-body">
+                            <h5 class="card-title"><i class="fas fa-car"></i> Total Spots</h5>
+                            <h2 class="card-text">{{ total_spots }}</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-warning text-white">
+                        <div class="card-body">
+                            <h5 class="card-title"><i class="fas fa-clock"></i> Active Reservations</h5>
+                            <h2 class="card-text">{{ active_reservations }}</h2>
                         </div>
                     </div>
                 </div>
             </div>
-            
-            <div class="col-md-3 mb-3">
-                <div class="card text-white bg-info">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <h6 class="card-title">Appointments Today</h6>
-                                <h3 class="mb-0">{{ appointments_today }}</h3>
-                            </div>
-                            <i class="fas fa-calendar-check fa-3x opacity-50"></i>
-                        </div>
+
+            <!-- Lot-wise Summary -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-parking"></i> Lot-wise Summary</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Lot Name</th>
+                                    <th>Total Spots</th>
+                                    <th>Available Spots</th>
+                                    <th>Occupied Spots</th>
+                                    <th>Occupancy Rate</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for lot in lot_summary %}
+                                <tr>
+                                    <td>{{ lot.name }}</td>
+                                    <td>{{ lot.total_spots }}</td>
+                                    <td>{{ lot.available_spots }}</td>
+                                    <td>{{ lot.occupied_spots }}</td>
+                                    <td>
+                                        <div class="progress" style="height: 20px;">
+                                            <div class="progress-bar {% if lot.occupied_spots / lot.total_spots * 100 > 80 %}bg-danger{% elif lot.occupied_spots / lot.total_spots * 100 > 50 %}bg-warning{% else %}bg-success{% endif %}" 
+                                                 role="progressbar" 
+                                                 style="width: {{ (lot.occupied_spots / lot.total_spots * 100)|round|int }}%"
+                                                 aria-valuenow="{{ (lot.occupied_spots / lot.total_spots * 100)|round|int }}"
+                                                 aria-valuemin="0"
+                                                 aria-valuemax="100">
+                                                {{ (lot.occupied_spots / lot.total_spots * 100)|round|int }}%
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
-            
-            <div class="col-md-3 mb-3">
-                <div class="card text-white bg-warning">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <h6 class="card-title">Current Month</h6>
-                                <h3 class="mb-0">{{ now.strftime('%B') }}</h3>
-                            </div>
-                            <i class="fas fa-calendar-alt fa-3x opacity-50"></i>
+
+            <!-- Charts -->
+            <div class="row">
+                <!-- Occupancy Chart -->
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0"><i class="fas fa-chart-pie"></i> Lot Occupancy</h5>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="occupancyChart"></canvas>
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
-        
-        <!-- Charts -->
-        <div class="row">
-            <!-- Appointments by Date Chart -->
-            <div class="col-md-6 mb-4">
-                <div class="card">
-                    <div class="card-header">
-                        <h5 class="mb-0">Appointments (Last 7 Days)</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="chart-container">
-                            <canvas id="appointmentsChart"></canvas>
+
+                <!-- Revenue Chart -->
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0"><i class="fas fa-chart-line"></i> Daily Revenue</h5>
                         </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Top Doctors Chart -->
-            <div class="col-md-6 mb-4">
-                <div class="card">
-                    <div class="card-header">
-                        <h5 class="mb-0">Doctors by Patients</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="chart-container">
-                            <canvas id="doctorsChart"></canvas>
+                        <div class="card-body">
+                            <canvas id="revenueChart"></canvas>
                         </div>
                     </div>
                 </div>
@@ -98,77 +118,56 @@
         </div>
     </div>
 </div>
-{% endblock %}
 
-{% block scripts %}
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    // Appointments by Date Chart
-    const appointmentsCtx = document.getElementById('appointmentsChart').getContext('2d');
-    const appointmentsChart = new Chart(appointmentsCtx, {
-        type: 'line',
-        data: {
-            labels: {{ dates|tojson }},
-            datasets: [{
-                label: 'Number of Appointments',
-                data: {{ appointment_counts|tojson }},
-                backgroundColor: 'rgba(52, 152, 219, 0.2)',
-                borderColor: 'rgba(52, 152, 219, 1)',
-                borderWidth: 2,
-                tension: 0.1,
-                fill: true
-            }]
-        },
-        options: {
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: {
-                        precision: 0
-                    }
-                }
-            },
-            responsive: true,
-            maintainAspectRatio: false
-        }
-    });
-    
-    // Top Doctors Chart
-    const doctorsCtx = document.getElementById('doctorsChart').getContext('2d');
-    const doctorsChart = new Chart(doctorsCtx, {
+    // Occupancy Chart
+    const occupancyCtx = document.getElementById('occupancyChart').getContext('2d');
+    new Chart(occupancyCtx, {
         type: 'bar',
         data: {
-            labels: {{ doctor_names|tojson }},
+            labels: {{ occupancy_labels|tojson }},
             datasets: [{
-                label: 'Number of Patients',
-                data: {{ doctor_counts|tojson }},
-                backgroundColor: [
-                    'rgba(46, 204, 113, 0.7)',
-                    'rgba(52, 152, 219, 0.7)',
-                    'rgba(155, 89, 182, 0.7)',
-                    'rgba(241, 196, 15, 0.7)',
-                    'rgba(230, 126, 34, 0.7)'
-                ],
-                borderColor: [
-                    'rgba(46, 204, 113, 1)',
-                    'rgba(52, 152, 219, 1)',
-                    'rgba(155, 89, 182, 1)',
-                    'rgba(241, 196, 15, 1)',
-                    'rgba(230, 126, 34, 1)'
-                ],
+                label: 'Occupancy Rate (%)',
+                data: {{ occupancy_data|tojson }},
+                backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                borderColor: 'rgba(54, 162, 235, 1)',
                 borderWidth: 1
             }]
         },
         options: {
+            responsive: true,
             scales: {
                 y: {
                     beginAtZero: true,
-                    ticks: {
-                        precision: 0
-                    }
+                    max: 100
                 }
-            },
+            }
+        }
+    });
+
+    // Revenue Chart
+    const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+    new Chart(revenueCtx, {
+        type: 'line',
+        data: {
+            labels: {{ revenue_labels|tojson }},
+            datasets: [{
+                label: 'Revenue (₹)',
+                data: {{ revenue_data|tojson }},
+                fill: false,
+                borderColor: 'rgba(75, 192, 192, 1)',
+                tension: 0.1
+            }]
+        },
+        options: {
             responsive: true,
-            maintainAspectRatio: false
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
         }
     });
 </script>

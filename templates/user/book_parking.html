@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+
+{% block title %}Book Parking Spot{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12 content">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="fas fa-parking"></i> Book Parking Spot</h2>
+                <a href="{{ url_for('user.dashboard') }}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to Dashboard
+                </a>
+            </div>
+
+            <div class="row">
+                <!-- Parking Lot Information -->
+                <div class="col-md-4">
+                    <div class="card mb-4">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0"><i class="fas fa-info-circle"></i> Parking Lot Information</h5>
+                        </div>
+                        <div class="card-body">
+                            <h4>{{ lot.name }}</h4>
+                            <p><strong>Location:</strong> {{ lot.prime_location_name }}</p>
+                            <p><strong>Address:</strong> {{ lot.address }}</p>
+                            <p><strong>Pin Code:</strong> {{ lot.pin_code }}</p>
+                            <p><strong>Price/Hour:</strong> ₹{{ lot.price_per_hour }}</p>
+                            
+                            <!-- Spot Status -->
+                            {% set available_spots = lot.spots|selectattr('status', 'equalto', 'A')|list|length %}
+                            {% set occupied_spots = lot.spots|selectattr('status', 'equalto', 'O')|list|length %}
+                            <div class="progress mb-3">
+                                <div class="progress-bar bg-success" role="progressbar" 
+                                     style="width: {{ (available_spots / lot.maximum_spots * 100)|round }}%"
+                                     aria-valuenow="{{ (available_spots / lot.maximum_spots * 100)|round }}"
+                                     aria-valuemin="0" aria-valuemax="100">
+                                    {{ available_spots }} Available
+                                </div>
+                                <div class="progress-bar bg-danger" role="progressbar" 
+                                     style="width: {{ (occupied_spots / lot.maximum_spots * 100)|round }}%" 
+                                     aria-valuenow="{{ (occupied_spots / lot.maximum_spots * 100)|round }}" 
+                                     aria-valuemin="0" aria-valuemax="100">
+                                    {{ occupied_spots }} Occupied
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Booking Form -->
+                <div class="col-md-8">
+                    <div class="card">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0"><i class="fas fa-calendar-alt"></i> Select Date and Time Slot</h5>
+                        </div>
+                        <div class="card-body">
+                            <form method="POST" action="{{ url_for('user.book_spot') }}">
+                                <input type="hidden" name="lot_id" value="{{ lot.id }}">
+                                
+                                <!-- Car Details -->
+                                <div class="mb-4">
+                                    <label class="form-label">Car Name</label>
+                                    <input type="text" name="car_name" class="form-control" placeholder="e.g. Honda City" required>
+                                </div>
+                                <div class="mb-4">
+                                    <label class="form-label">Car Number</label>
+                                    <input type="text" name="car_number" class="form-control" placeholder="e.g. MH12AB1234" required pattern="[A-Za-z0-9 ]{4,15}">
+                                </div>
+                                <!-- Date Selection -->
+                                <div class="mb-4">
+                                    <label class="form-label">Select Date</label>
+                                    <input type="date" name="date" class="form-control" required
+                                           min="{{ now.strftime('%Y-%m-%d') }}"
+                                           value="{{ now.strftime('%Y-%m-%d') }}">
+                                </div>
+
+                                <!-- Time Slot Selection -->
+                                <div class="mb-4">
+                                    <label class="form-label">Select Time Slots</label>
+                                    <div class="row">
+                                        {% for slot in time_slots %}
+                                        <div class="col-md-4 mb-3">
+                                            <div class="form-check">
+                                                <input class="form-check-input time-slot-checkbox" type="checkbox" 
+                                                       name="time_slot" id="slot{{ slot.id }}" 
+                                                       value="{{ slot.id }}" data-price="{{ slot.price }}">
+                                                <label class="form-check-label" for="slot{{ slot.id }}">
+                                                    {{ slot.start_time.strftime('%H:%M') }} - {{ slot.end_time.strftime('%H:%M') }}
+                                                    <span class="badge bg-primary">₹{{ "%.2f"|format(slot.price) }}</span>
+                                                </label>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+
+                                <div class="form-group mb-3">
+                                    <label>Total Cost</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">₹</span>
+                                        <input type="text" class="form-control" id="total_cost" readonly>
+                                    </div>
+                                </div>
+
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle"></i> Each time slot is 30 minutes long.
+                                </div>
+
+                                <div class="text-end">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-check"></i> Book Now
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const checkboxes = document.querySelectorAll('.time-slot-checkbox');
+    const totalCostInput = document.getElementById('total_cost');
+    
+    function updateTotalCost() {
+        let total = 0;
+        checkboxes.forEach(checkbox => {
+            if (checkbox.checked) {
+                total += parseFloat(checkbox.dataset.price);
+            }
+        });
+        totalCostInput.value = total.toFixed(2);
+    }
+    
+    checkboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', updateTotalCost);
+    });
+});
+</script>
+{% endblock %}

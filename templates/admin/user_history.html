@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+{% block title %}User History - Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12 content">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="fas fa-user"></i> {{ user.name }}'s Booking History</h2>
+                <a href="{{ url_for('admin.users') }}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to Users
+                </a>
+            </div>
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">User Information</h5>
+                    <p><strong>Name:</strong> {{ user.name }}</p>
+                    <p><strong>Email:</strong> {{ user.email }}</p>
+                    <p><strong>Phone:</strong> {{ user.phone }}</p>
+                    <p><strong>Address:</strong> {{ user.address }}</p>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-history"></i> Reservation History</h5>
+                </div>
+                <div class="card-body">
+                    {% if reservations %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Booking ID</th>
+                                    <th>Parking Lot</th>
+                                    <th>Spot</th>
+                                    <th>Date</th>
+                                    <th>Time Slot</th>
+                                    <th>Status</th>
+                                    <th>Cost</th>
+                                    <th>Car Name</th>
+                                    <th>Car Number</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for reservation in reservations %}
+                                <tr>
+                                    <td>#{{ reservation.id }}</td>
+                                    <td>{{ reservation.spot.lot.name }}</td>
+                                    <td>{{ reservation.spot.spot_number }}</td>
+                                    <td>{{ reservation.date.strftime('%Y-%m-%d') }}</td>
+                                    <td>{{ reservation.time_slot.start_time.strftime('%H:%M') }} - {{ reservation.time_slot.end_time.strftime('%H:%M') }}</td>
+                                    <td>
+                                        {% if reservation.status == 'active' %}
+                                            <span class="badge bg-success">Active</span>
+                                        {% elif reservation.status == 'completed' %}
+                                            <span class="badge bg-primary">Completed</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">Cancelled</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>₹{{ '%.2f'|format(reservation.total_cost) if reservation.total_cost else 'Pending' }}</td>
+                                    <td>{{ reservation.car_name }}</td>
+                                    <td>{{ reservation.car_number }}</td>
+                                    <td>
+                                        {% if reservation.status == 'active' %}
+                                            <div class="btn-group">
+                                                <form action="{{ url_for('admin.complete_reservation', reservation_id=reservation.id) }}" method="POST" class="d-inline">
+                                                    <button type="submit" class="btn btn-primary btn-sm" onclick="return confirm('Are you sure you want to complete this reservation?')">
+                                                        <i class="fas fa-check"></i> Complete
+                                                    </button>
+                                                </form>
+                                                <form action="{{ url_for('admin.release_spot', reservation_id=reservation.id) }}" method="POST" class="d-inline">
+                                                    <button type="submit" class="btn btn-warning btn-sm" onclick="return confirm('Are you sure you want to release this spot?')">
+                                                        <i class="fas fa-unlock"></i> Release
+                                                    </button>
+                                                </form>
+                                                <a href="{{ url_for('admin.generate_receipt', reservation_id=reservation.id) }}" class="btn btn-info btn-sm">
+                                                    <i class="fas fa-file-invoice"></i> Receipt
+                                                </a>
+                                            </div>
+                                        {% elif reservation.status == 'completed' %}
+                                            <a href="{{ url_for('admin.generate_receipt', reservation_id=reservation.id) }}" class="btn btn-info btn-sm">
+                                                <i class="fas fa-file-invoice"></i> Receipt
+                                            </a>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i> No reservation history found for this user.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

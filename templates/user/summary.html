@@ -1,285 +1,162 @@
 {% extends "base.html" %}
 
-{% block title %}User Summary - Medical Appointment Booking{% endblock %}
+{% block title %}User Summary - Parking App{% endblock %}
 
 {% block content %}
-<div class="row mb-4">
-    <div class="col-md-12">
-        <h2 class="mb-4"><i class="fas fa-chart-bar"></i> My Health Summary</h2>
-        
-        <!-- Statistics Cards -->
-        <div class="row mb-4">
-            <div class="col-md-3 mb-3">
-                <div class="card text-white bg-primary">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <h6 class="card-title">Total Appointments</h6>
-                                <h3 class="mb-0">{{ total_appointments }}</h3>
-                            </div>
-                            <i class="fas fa-calendar-check fa-3x opacity-50"></i>
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12 content">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="fas fa-chart-line"></i> User Summary</h2>
+                <a href="{{ url_for('user.dashboard') }}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to Dashboard
+                </a>
+            </div>
+
+            <!-- Statistics Cards -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card bg-success text-white">
+                        <div class="card-body">
+                            <h5 class="card-title">Total Bookings</h5>
+                            <h2 class="mb-0">{{ total_bookings }}</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-primary text-white">
+                        <div class="card-body">
+                            <h5 class="card-title">Total Duration</h5>
+                            <h2 class="mb-0">{{ total_duration }}h</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-info text-white">
+                        <div class="card-body">
+                            <h5 class="card-title">Total Spent</h5>
+                            <h2 class="mb-0">₹{{ total_cost }}</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-warning text-white">
+                        <div class="card-body">
+                            <h5 class="card-title">Active Bookings</h5>
+                            <h2 class="mb-0">{{ active_bookings }}</h2>
                         </div>
                     </div>
                 </div>
             </div>
-            
-            <div class="col-md-3 mb-3">
-                <div class="card text-white bg-success">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <h6 class="card-title">Accepted</h6>
-                                <h3 class="mb-0">{{ accepted_count }}</h3>
-                            </div>
-                            <i class="fas fa-check-circle fa-3x opacity-50"></i>
+
+            <!-- Graphs -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header bg-success text-white">
+                            <h5 class="mb-0">Booking History</h5>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="bookingChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header bg-success text-white">
+                            <h5 class="mb-0">Spending Pattern</h5>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="spendingChart"></canvas>
                         </div>
                     </div>
                 </div>
             </div>
-            
-            <div class="col-md-3 mb-3">
-                <div class="card text-white bg-warning">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <h6 class="card-title">Pending</h6>
-                                <h3 class="mb-0">{{ pending_count }}</h3>
-                            </div>
-                            <i class="fas fa-hourglass-half fa-3x opacity-50"></i>
-                        </div>
-                    </div>
+
+            <!-- Lot-wise Summary -->
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">Lot-wise Summary</h5>
                 </div>
-            </div>
-            
-            <div class="col-md-3 mb-3">
-                <div class="card text-white bg-danger">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <h6 class="card-title">Rejected</h6>
-                                <h3 class="mb-0">{{ rejected_count }}</h3>
-                            </div>
-                            <i class="fas fa-times-circle fa-3x opacity-50"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Charts -->
-        <div class="row">
-            <!-- Preferred Time Slots Chart -->
-            <div class="col-md-6 mb-4">
-                <div class="card">
-                    <div class="card-header">
-                        <h5 class="mb-0">Most Preferred Time Slots</h5>
-                    </div>
-                    <div class="card-body">
-                        {% if time_labels %}
-                            <div class="chart-container">
-                                <canvas id="timePreferencesChart"></canvas>
-                            </div>
-                        {% else %}
-                            <div class="alert alert-info">
-                                <i class="fas fa-info-circle"></i> Not enough data to display time preferences.
-                            </div>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Most Booked Specialist Types Chart -->
-            <div class="col-md-6 mb-4">
-                <div class="card">
-                    <div class="card-header">
-                        <h5 class="mb-0">Most Visited Specialists</h5>
-                    </div>
-                    <div class="card-body">
-                        {% if specialist_labels %}
-                            <div class="chart-container">
-                                <canvas id="specialistChart"></canvas>
-                            </div>
-                        {% else %}
-                            <div class="alert alert-info">
-                                <i class="fas fa-info-circle"></i> Not enough data to display specialist preferences.
-                            </div>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Appointment Status Chart -->
-            <div class="col-md-6 mb-4">
-                <div class="card">
-                    <div class="card-header">
-                        <h5 class="mb-0">Appointment Status Distribution</h5>
-                    </div>
-                    <div class="card-body">
-                        {% if status_labels %}
-                            <div class="chart-container">
-                                <canvas id="statusChart"></canvas>
-                            </div>
-                        {% else %}
-                            <div class="alert alert-info">
-                                <i class="fas fa-info-circle"></i> Not enough data to display status distribution.
-                            </div>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Monthly Appointment Chart -->
-            <div class="col-md-6 mb-4">
-                <div class="card">
-                    <div class="card-header">
-                        <h5 class="mb-0">Appointments by Month ({{ now.year }})</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="chart-container">
-                            <canvas id="monthlyChart"></canvas>
-                        </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Parking Lot</th>
+                                    <th>Total Bookings</th>
+                                    <th>Total Spent</th>
+                                    <th>Average Cost</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for lot in lot_summary %}
+                                <tr>
+                                    <td>{{ lot.name }}</td>
+                                    <td>{{ lot.total_bookings }}</td>
+                                    <td>₹{{ "%.2f"|format(lot.total_cost) }}</td>
+                                    <td>₹{{ "%.2f"|format(lot.total_cost / lot.total_bookings) if lot.total_bookings > 0 else 0 }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
-{% endblock %}
 
 {% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    {% if time_labels %}
-    // Preferred Time Slots Chart
-    const timeCtx = document.getElementById('timePreferencesChart').getContext('2d');
-    const timeChart = new Chart(timeCtx, {
+    // Booking History Chart
+    const bookingCtx = document.getElementById('bookingChart').getContext('2d');
+    new Chart(bookingCtx, {
         type: 'bar',
         data: {
-            labels: {{ time_labels|tojson }},
+            labels: {{ booking_labels|tojson }},
             datasets: [{
-                label: 'Frequency',
-                data: {{ time_counts|tojson }},
-                backgroundColor: 'rgba(52, 152, 219, 0.7)',
-                borderColor: 'rgba(52, 152, 219, 1)',
-                borderWidth: 1
+                label: 'Number of Bookings',
+                data: {{ booking_data|tojson }},
+                backgroundColor: '#28a745'
             }]
         },
         options: {
+            responsive: true,
             scales: {
                 y: {
                     beginAtZero: true,
                     ticks: {
-                        precision: 0
+                        stepSize: 1
                     }
                 }
-            },
-            responsive: true,
-            maintainAspectRatio: false
-        }
-    });
-    {% endif %}
-    
-    {% if specialist_labels %}
-    // Most Booked Specialist Types Chart
-    const specCtx = document.getElementById('specialistChart').getContext('2d');
-    const specialistChart = new Chart(specCtx, {
-        type: 'pie',
-        data: {
-            labels: {{ specialist_labels|tojson }},
-            datasets: [{
-                data: {{ specialist_counts|tojson }},
-                backgroundColor: [
-                    'rgba(46, 204, 113, 0.7)',
-                    'rgba(52, 152, 219, 0.7)',
-                    'rgba(155, 89, 182, 0.7)',
-                    'rgba(241, 196, 15, 0.7)',
-                    'rgba(230, 126, 34, 0.7)'
-                ],
-                borderColor: [
-                    'rgba(46, 204, 113, 1)',
-                    'rgba(52, 152, 219, 1)',
-                    'rgba(155, 89, 182, 1)',
-                    'rgba(241, 196, 15, 1)',
-                    'rgba(230, 126, 34, 1)'
-                ],
-                borderWidth: 1
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    position: 'right'
-                }
             }
         }
     });
-    {% endif %}
-    
-    {% if status_labels %}
-    // Appointment Status Chart
-    const statusCtx = document.getElementById('statusChart').getContext('2d');
-    const statusChart = new Chart(statusCtx, {
-        type: 'doughnut',
-        data: {
-            labels: {{ status_labels|tojson }},
-            datasets: [{
-                data: {{ status_counts|tojson }},
-                backgroundColor: [
-                    'rgba(241, 196, 15, 0.7)',  // Pending - yellow
-                    'rgba(46, 204, 113, 0.7)',  // Approved - green
-                    'rgba(230, 126, 34, 0.7)',  // Completed - orange
-                    'rgba(231, 76, 60, 0.7)'    // Rejected - red
-                ],
-                borderColor: [
-                    'rgba(241, 196, 15, 1)',
-                    'rgba(46, 204, 113, 1)',
-                    'rgba(230, 126, 34, 1)',
-                    'rgba(231, 76, 60, 1)'
-                ],
-                borderWidth: 1
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    position: 'right'
-                }
-            }
-        }
-    });
-    {% endif %}
-    
-    // Monthly Appointment Chart
-    const monthlyCtx = document.getElementById('monthlyChart').getContext('2d');
-    const monthlyChart = new Chart(monthlyCtx, {
+
+    // Spending Pattern Chart
+    const spendingCtx = document.getElementById('spendingChart').getContext('2d');
+    new Chart(spendingCtx, {
         type: 'line',
         data: {
-            labels: {{ month_names|tojson }},
+            labels: {{ spending_labels|tojson }},
             datasets: [{
-                label: 'Appointments',
-                data: {{ monthly_counts|tojson }},
-                backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                borderColor: 'rgba(75, 192, 192, 1)',
-                borderWidth: 2,
-                tension: 0.3,
-                fill: true
+                label: 'Daily Spending',
+                data: {{ spending_data|tojson }},
+                borderColor: '#28a745',
+                tension: 0.1
             }]
         },
         options: {
+            responsive: true,
             scales: {
                 y: {
-                    beginAtZero: true,
-                    ticks: {
-                        precision: 0
-                    }
+                    beginAtZero: true
                 }
-            },
-            responsive: true,
-            maintainAspectRatio: false
+            }
         }
     });
 </script>
+{% endblock %}
 {% endblock %}

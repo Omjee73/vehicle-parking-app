@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+
+{% block title %}Booking History - Parking App{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0">
+                            <i class="fas fa-history"></i> Booking History
+                        </h4>
+                        <a href="{{ url_for('user.dashboard') }}" class="btn btn-sm btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Back to Dashboard
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% if reservations %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Booking ID</th>
+                                    <th>Parking Lot</th>
+                                    <th>Spot</th>
+                                    <th>Date</th>
+                                    <th>Time Slot</th>
+                                    <th>Cost</th>
+                                    <th>Status</th>
+                                    <th>Car Name</th>
+                                    <th>Car Number</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for reservation in reservations %}
+                                <tr>
+                                    <td>#{{ reservation.id }}</td>
+                                    <td>{{ reservation.spot.lot.name }}</td>
+                                    <td>{{ reservation.spot.spot_number }}</td>
+                                    <td>{{ reservation.date.strftime('%Y-%m-%d') }}</td>
+                                    <td>
+                                        {% if reservation.time_slot %}
+                                            {{ reservation.time_slot.start_time.strftime('%H:%M') }} - {{ reservation.time_slot.end_time.strftime('%H:%M') }}
+                                        {% else %}
+                                            N/A
+                                        {% endif %}
+                                    </td>
+                                    <td>₹{{ "%.2f"|format(reservation.total_cost) if reservation.total_cost else "Pending" }}</td>
+                                    <td>
+                                        {% if reservation.status == 'active' %}
+                                            <span class="badge bg-success">Active</span>
+                                        {% elif reservation.status == 'completed' %}
+                                            <span class="badge bg-primary">Completed</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">Cancelled</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ reservation.car_name }}</td>
+                                    <td>{{ reservation.car_number }}</td>
+                                    <td>
+                                        <div class="btn-group">
+                                            {% if reservation.status == 'active' %}
+                                            <form action="{{ url_for('user.complete_reservation', reservation_id=reservation.id) }}" method="POST" class="d-inline">
+                                                <button type="submit" class="btn btn-sm btn-success" onclick="return confirm('Are you sure you want to complete this reservation?')">
+                                                    <i class="fas fa-check"></i> Complete
+                                                </button>
+                                            </form>
+                                            <form action="{{ url_for('user.release_spot', reservation_id=reservation.id) }}" method="POST" class="d-inline">
+                                                <button type="submit" class="btn btn-sm btn-warning" onclick="return confirm('Are you sure you want to release this spot?')">
+                                                    <i class="fas fa-sign-out-alt"></i> Release
+                                                </button>
+                                            </form>
+                                            {% endif %}
+                                            <a href="{{ url_for('user.view_receipt', reservation_id=reservation.id) }}" class="btn btn-sm btn-info">
+                                                <i class="fas fa-receipt"></i> Receipt
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i> No booking history found.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 
