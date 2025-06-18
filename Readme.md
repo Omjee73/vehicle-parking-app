@@ -104,6 +104,8 @@ A sophisticated web-based platform designed to revolutionize the way parking spa
 ### Default Admin Credentials
 - **Email**: admin@parking.com
 - **Password**: admin123
+- **Email**: superadmin@parking.com
+- **Password**: super123
 
 ## 👥 User Roles and Access
 
