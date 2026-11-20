@@ -140,3 +140,38 @@ A sophisticated web-based platform designed to revolutionize the way parking spa
 3. Configure system settings.
 4. Handle system maintenance.
 
+## Getting started
+
+### Prerequisites
+
+- Python 3.7 or newer (the app uses Flask, Flask-Login, Flask-SQLAlchemy; run it in a virtual environment).
+
+### Setup and run
+
+```powershell
+python -m venv .venv
+& .venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+python app.py
+```
+
+Open **http://127.0.0.1:5000/** â€” the app redirects to the login page. Default accounts are seeded:
+
+- Email: `admin@parking.com`, Password: `admin123` (admin)
+- Email: `superadmin@parking.com`, Password: `super123` (super admin)
+
+The SQLite database (`parking.db`) is created automatically on first run.
+
+### Project structure
+
+- `app.py` â€” Flask entry point: creates tables, seeds the default admin, mounts the auth/admin/user blueprints.
+- `extensions.py` â€” shared Flask extensions (SQLAlchemy, login manager, ...).
+- `models.py` â€” `User`, `Admin`, `RegularUser`, `ParkingLot`, `ParkingSpot`, `Reservation` models.
+- `routes/` â€” blueprints: `auth.py` (login/register/logout), `admin.py` (admin dashboard/data), `user.py` (user dashboard/data).
+- `templates/` â€” Jinja2 pages (login, register, admin/user dashboards).
+- `static/` â€” CSS assets.
+
+## Contributing
+
+Fork the repository, make the change, and open a pull request against `main` with a short description of what changed.
+
